@@ -1,19 +1,12 @@
-﻿namespace WakeOnLanCore.Models
+﻿using System;
+
+namespace WakeOnLanCore.Models
 {
+    [Serializable]
     public class Device
     {
-        public int ID { get; }
-        public string Name { get; }
-        public string MacAddress { get; }
-
-        public Device(int id, string name, string macAddress)
-        {
-            ID = id;
-            Name = name;
-            MacAddress = macAddress;
-        }
-
-        // Constructor for serialization
-        public Device() { }
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public string MacAddress { get; set; }
     }
 }
