@@ -1,0 +1,25 @@
+@model List<WakeOnLanCore.Models.Device>
+
+@{
+    ViewData["Title"] = "Wake on LAN";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>MAC Address</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var device in Model)
+        {
+            <tr>
+                <td>@device.Name</td>
+                <td>@device.MacAddress</td>
+            </tr>
+        }
+    </tbody>
+</table>
