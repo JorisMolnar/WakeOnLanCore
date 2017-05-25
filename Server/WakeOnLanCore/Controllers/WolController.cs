@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -11,14 +12,13 @@ namespace WakeOnLanCore.Controllers
     [Route("Wol")]
     public class WolController : Controller
     {
-        private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IDeviceRepository _deviceRepository;
 
         public WolController(IHostingEnvironment hostingEnvironment)
         {
-            _hostingEnvironment = hostingEnvironment;
+            if (hostingEnvironment == null) throw new ArgumentNullException(nameof(hostingEnvironment));
 
-            string settingsPath = Path.Combine(_hostingEnvironment.ContentRootPath, "AppData", "devices.xml");
+            string settingsPath = Path.Combine(hostingEnvironment.ContentRootPath, "AppData", "devices.xml");
             _deviceRepository = new DeviceRepository(settingsPath);
         }
 
@@ -32,14 +32,10 @@ namespace WakeOnLanCore.Controllers
 
         // POST: Wol
         [HttpPost]
-        public void Post([FromBody] Device device)
+        public Device Post([FromBody] Device device)
         {
-        }
-
-        // PUT: Wol/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] Device value)
-        {
+            var createdDevice = _deviceRepository.AddDevice(device);
+            return createdDevice;
         }
 
         // DELETE: Wol/5

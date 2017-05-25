@@ -3,10 +3,10 @@ using WakeOnLanCore.Models;
 
 namespace WakeOnLanCore.Data
 {
-    interface IDeviceRepository
+    public interface IDeviceRepository
     {
-        List<Device> GetAllDevices();
-        void AddDevice(Device device);
+        IList<Device> GetAllDevices();
+        Device AddDevice(Device device);
         void DeleteDevice(int id);
     }
 }

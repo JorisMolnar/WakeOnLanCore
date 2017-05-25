@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Xml.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.Serialization;
+using WakeOnLanCore.Exceptions;
 using WakeOnLanCore.Models;
 
 namespace WakeOnLanCore.Data
@@ -20,20 +22,26 @@ namespace WakeOnLanCore.Data
             CreateSettingsDirectory();
         }
 
-        private void CreateSettingsDirectory()
+        public Device AddDevice(Device device)
         {
-            if (!File.Exists(_settingsFilePath))
-            {
-                string settingsDirectoryPath = _settingsFilePath.Remove(_settingsFilePath.LastIndexOf(Path.DirectorySeparatorChar));
-                Directory.CreateDirectory(settingsDirectoryPath);
-            }
-        }
+            if (device == null) throw new ArgumentNullException(nameof(device));
 
-        public void AddDevice(Device device)
-        {
+            if (device.ID == 0)
+            {
+                device.ID = GetNextID();
+            }
+
             var devices = GetAllDevices();
+            if (devices.Any(d => d.ID == device.ID ||
+                                 d.Name == device.Name ||
+                                 d.MacAddress == device.MacAddress))
+            {
+                throw new ObjectNotUniqueException();
+            }
+
             devices.Add(device);
             SaveAllDevices(devices);
+            return device;
         }
 
         public void DeleteDevice(int id)
@@ -45,25 +53,76 @@ namespace WakeOnLanCore.Data
             SaveAllDevices(devices);
         }
 
-        public List<Device> GetAllDevices()
+        private void CreateSettingsDirectory()
+        {
+            if (!File.Exists(_settingsFilePath))
+            {
+                string settingsDirectoryPath = _settingsFilePath.Remove(_settingsFilePath.LastIndexOf(Path.DirectorySeparatorChar));
+                Directory.CreateDirectory(settingsDirectoryPath);
+            }
+        }
+
+        private int GetNextID()
+        {
+            var allDevices = GetAllDevices();
+            if (allDevices.Count == 0)
+                return 1;
+            return allDevices.Max(d => d.ID) + 1;
+        }
+
+        public IList<Device> GetAllDevices()
         {
             if (!File.Exists(_settingsFilePath)) return new List<Device>();
-            
-            using (FileStream fs = new FileStream(_settingsFilePath, FileMode.Open))
+
+            using (var fs = new FileStream(_settingsFilePath, FileMode.Open))
             {
-                var devices = _serializer?.Deserialize(fs) as List<Device>;
+                var devices = _serializer.Deserialize(fs) as List<Device>;
                 return devices;
             }
         }
 
-        private void SaveAllDevices(List<Device> devices)
+        private void SaveAllDevices(IList<Device> devices)
         {
             CreateSettingsDirectory();
+            FixDevices(devices);
 
-            using (FileStream fs = new FileStream(_settingsFilePath, FileMode.Create))
+            var devicesToSave = devices as List<Device> ?? devices.ToList();
+            using (var fs = new FileStream(_settingsFilePath, FileMode.Create))
             {
-                _serializer.Serialize(fs, devices);
+                _serializer.Serialize(fs, devicesToSave);
             }
+        }
+
+        private void FixDevices(IList<Device> devices)
+        {
+            // Check non unique IDs
+            if (devices.Count != devices.Select(d => d.ID).Distinct().Count())
+                throw new ArgumentException("Unable to save devices with non unique ID's.", nameof(devices));
+
+            if (devices.Any(d => d.ID <= 0))
+                throw new ArgumentException("All Device ID's must be higher than 0", nameof(devices));
+
+            foreach (var device in devices)
+            {
+                device.MacAddress = FormatMacAddress(device.MacAddress);
+                device.Name = device.Name.Trim();
+            }
+        }
+
+        private string FormatMacAddress(string macAddress)
+        {
+            if (macAddress == null) throw new ArgumentNullException(nameof(macAddress));
+            macAddress = macAddress.Trim();
+            if (macAddress.Length != 17) throw new ArgumentException($"MacAddress \"{macAddress}\" has the wrong length.", nameof(macAddress));
+
+            macAddress = macAddress
+                .Replace('-', ':')
+                .ToUpperInvariant();
+
+            bool isValid = Regex.IsMatch(macAddress, "^(?:[0-9A-F]{2}:){5}[0-9A-F]{2}$");
+            if (!isValid) throw new ArgumentException($"MacAddress \"{macAddress}\" has no valid format.", nameof(macAddress));
+
+            return macAddress;
         }
     }
 }
