@@ -46,11 +46,18 @@ namespace WakeOnLanCore.Data
 
         public void DeleteDevice(int id)
         {
-            var devices = GetAllDevices()
+            var devices = GetAllDevices();
+
+            var newDevices = devices
                 .Where(d => d.ID != id)
                 .ToList();
 
-            SaveAllDevices(devices);
+            if (newDevices.Count == devices.Count)
+            {
+                throw new KeyNotFoundException($"No {nameof(Device)} with the ID {id} could be found.");
+            }
+
+            SaveAllDevices(newDevices);
         }
 
         private void CreateSettingsDirectory()
