@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.IO;
 using WakeOnLanCore.Data;
+using WakeOnLanCore.Exceptions;
 using WakeOnLanCore.Models;
 
 namespace WakeOnLanCore.Controllers
@@ -48,17 +49,39 @@ namespace WakeOnLanCore.Controllers
 
         // POST: Wol
         [HttpPost]
-        public Device Post([FromBody] Device device)
+        public IActionResult Post([FromBody] Device device)
         {
-            var createdDevice = _deviceRepository.AddDevice(device);
-            return createdDevice;
+            try
+            {
+                var createdDevice = _deviceRepository.AddDevice(device);
+                return CreatedAtAction(nameof(Get), new {id = createdDevice.ID}, createdDevice);
+            }
+            catch (ObjectNotUniqueException ex)
+            {
+                Console.WriteLine(ex);
+                return StatusCode(409, new {Message = $"A {nameof(Device)} with the supplied properties already exists."});
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine(ex);
+                return BadRequest(new {ex.Message});
+            }
         }
 
         // DELETE: Wol/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
-            _deviceRepository.DeleteDevice(id);
+            try
+            {
+                _deviceRepository.DeleteDevice(id);
+                return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine(ex);
+                return NotFound(new {ex.Message});
+            }
         }
     }
 }
