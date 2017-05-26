@@ -30,6 +30,22 @@ namespace WakeOnLanCore.Controllers
             return devices;
         }
 
+        // GET: Wol/5
+        [HttpGet("{id}")]
+        public IActionResult Get(int id)
+        {
+            try
+            {
+                var device = _deviceRepository.GetDevice(id);
+                return Ok(device);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine(ex);
+                return NotFound(ex.Message);
+            }
+        }
+
         // POST: Wol
         [HttpPost]
         public Device Post([FromBody] Device device)
