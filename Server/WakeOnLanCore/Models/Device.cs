@@ -8,5 +8,10 @@ namespace WakeOnLanCore.Models
         public int ID { get; set; }
         public string Name { get; set; }
         public string MacAddress { get; set; }
+
+        public override string ToString()
+        {
+            return $"{ID}: {Name}";
+        }
     }
 }
