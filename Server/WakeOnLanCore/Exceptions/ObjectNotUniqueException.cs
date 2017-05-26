@@ -10,7 +10,7 @@ namespace WakeOnLanCore.Exceptions
         /// <summary>
         /// Initializes a new instance of the <see cref="ObjectNotUniqueException"/> class.
         /// </summary>
-        public ObjectNotUniqueException() : base()
+        public ObjectNotUniqueException()
         {
         }
 

@@ -81,6 +81,18 @@ namespace WakeOnLanCore.Data
             }
         }
 
+        public Device GetDevice(int id)
+        {
+            try
+            {
+                return GetAllDevices().Single(d => d.ID == id);
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new KeyNotFoundException($"No {nameof(Device)} with the ID {id} could be found.", ex);
+            }
+        }
+
         private void SaveAllDevices(IList<Device> devices)
         {
             CreateSettingsDirectory();
