@@ -135,10 +135,10 @@ namespace WakeOnLanCore.Data
             if (macAddress.Length != 17) throw new ArgumentException($"MacAddress \"{macAddress}\" has the wrong length.", nameof(macAddress));
 
             macAddress = macAddress
-                .Replace('-', ':')
+                .Replace(':', '-')
                 .ToUpperInvariant();
 
-            bool isValid = Regex.IsMatch(macAddress, "^(?:[0-9A-F]{2}:){5}[0-9A-F]{2}$");
+            bool isValid = Regex.IsMatch(macAddress, "^(?:[0-9A-F]{2}-){5}[0-9A-F]{2}$");
             if (!isValid) throw new ArgumentException($"MacAddress \"{macAddress}\" has no valid format.", nameof(macAddress));
 
             return macAddress;
