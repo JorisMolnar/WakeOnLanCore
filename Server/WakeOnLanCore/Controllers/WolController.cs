@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.NetworkInformation;
 using WakeOnLanCore.Data;
 using WakeOnLanCore.Exceptions;
 using WakeOnLanCore.Models;
@@ -65,6 +67,24 @@ namespace WakeOnLanCore.Controllers
             {
                 Console.WriteLine(ex);
                 return BadRequest(new {ex.Message});
+            }
+        }
+
+        // POST: Wol/5/Packets
+        [HttpPost("{id}/Packets")]
+        public IActionResult PostPacket(int id)
+        {
+            try
+            {
+                var device = _deviceRepository.GetDevice(id);
+                var physicalAddress = PhysicalAddress.Parse(device.MacAddress);
+                physicalAddress.SendWol();
+                return Ok();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine(ex);
+                return NotFound(new {ex.Message});
             }
         }
 
