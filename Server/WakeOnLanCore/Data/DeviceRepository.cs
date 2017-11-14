@@ -64,7 +64,7 @@ namespace WakeOnLanCore.Data
         {
             if (!File.Exists(_settingsFilePath))
             {
-                string settingsDirectoryPath = _settingsFilePath.Remove(_settingsFilePath.LastIndexOf(Path.DirectorySeparatorChar));
+                string settingsDirectoryPath = Path.GetDirectoryName(_settingsFilePath);
                 Directory.CreateDirectory(settingsDirectoryPath);
             }
         }
